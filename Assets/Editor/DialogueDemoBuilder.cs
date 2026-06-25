@@ -229,7 +229,7 @@ namespace Mygame.EditorTools
             var dm = root.AddComponent<DialogueManager>();
             var so = new SerializedObject(dm);
             so.FindProperty("inkJson").objectReferenceValue = ink;
-            so.FindProperty("playOnStart").boolValue = false;
+            so.FindProperty("playOnStart").boolValue = true; // self-start, no script-order race
             so.FindProperty("dialoguePanel").objectReferenceValue = panel;
             so.FindProperty("speakerText").objectReferenceValue = speakerTmp;
             so.FindProperty("dialogueText").objectReferenceValue = bodyTmp;
@@ -255,35 +255,29 @@ namespace Mygame.EditorTools
             var cam = camGo.GetComponent<Camera>();
             cam.orthographic = true;
             cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = ScreenBg;
+            cam.backgroundColor = ScreenBg;   // the dark backdrop IS the camera clear
             camGo.transform.position = new Vector3(0, 0, -10);
-            // Required under URP — without it the camera renders black.
-            camGo.AddComponent<UniversalAdditionalCameraData>();
+            camGo.AddComponent<UniversalAdditionalCameraData>(); // URP needs this to render
+            camGo.AddComponent<AudioListener>();
 
-            // EventSystem (legacy input module — project uses old input handler)
+            // EventSystem (legacy input module — project's input handler includes legacy)
             var es = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
 
-            // Background canvas
-            var bgRoot = new GameObject("Background",
-                typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            var bgCanvas = bgRoot.GetComponent<Canvas>();
-            bgCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            bgCanvas.sortingOrder = -10;
-            var bgImg = NewUI("BG", bgRoot.transform);
-            Stretch((RectTransform)bgImg.transform, 0, 0, 0, 0);
-            var img = bgImg.AddComponent<Image>();
-            img.color = ScreenBg;
-
-            // Dialogue UI instance
+            // Dialogue UI instance — link its canvas to the camera (Screen Space - Camera)
+            // so it renders reliably as part of the URP camera output.
             var ui = (GameObject)PrefabUtility.InstantiatePrefab(dialoguePrefab);
             var dm = ui.GetComponent<DialogueManager>();
+            var canvas = ui.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = cam;
+            canvas.planeDistance = 1f;
 
-            // Tester
+            // Tester only drives input now (DialogueManager self-starts via playOnStart).
             var testerGo = new GameObject("DialogueTester");
             var tester = testerGo.AddComponent<DialogueTester>();
             var so = new SerializedObject(tester);
             so.FindProperty("dialogue").objectReferenceValue = dm;
-            so.FindProperty("autoStart").boolValue = true;
+            so.FindProperty("autoStart").boolValue = false;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.SaveScene(scene, ScenePath);

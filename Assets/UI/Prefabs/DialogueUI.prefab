@@ -390,7 +390,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Mygame.Dialogue.DialogueManager
   inkJson: {fileID: 4900000, guid: 24fe90dda1fc2ae4d828855f844c0f51, type: 3}
-  playOnStart: 0
+  playOnStart: 1
   dialoguePanel: {fileID: 807397699642557731}
   speakerText: {fileID: 2874822088938935423}
   dialogueText: {fileID: 6328096383502221575}

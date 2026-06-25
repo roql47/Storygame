@@ -53,8 +53,11 @@ namespace Mygame.Dialogue
 
         private void Start()
         {
-            if (dialoguePanel != null) dialoguePanel.SetActive(false);
+            // Start playing (which shows the panel) OR hide it until told to start.
+            // Never hide unconditionally — that would race with an external caller
+            // that already started the dialogue this frame.
             if (playOnStart && inkJson != null) StartDialogue(inkJson);
+            else if (dialoguePanel != null && !IsPlaying) dialoguePanel.SetActive(false);
         }
 
         /// <summary>Start a dialogue from the serialized TextAsset.</summary>
@@ -72,6 +75,7 @@ namespace Mygame.Dialogue
             Story = new Story(compiledInk.text);
             IsPlaying = true;
             if (dialoguePanel != null) dialoguePanel.SetActive(true);
+            Canvas.ForceUpdateCanvases(); // ensure layout/visibility on the first frame
             OnDialogueStart?.Invoke();
             Advance();
         }
