@@ -10,6 +10,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -31,6 +32,9 @@ namespace Mygame.EditorTools
         const string ChoicePrefabPath = UiPrefabDir + "/ChoiceButton.prefab";
         const string InkJsonPath = "Assets/Ink/DemoStory.json";
         const string ScenePath = "Assets/Scenes/DialogueTest.unity";
+        const string FontAssetPath = "Assets/Fonts/NotoSansKR SDF.asset";
+
+        static TMP_FontAsset _font;
 
         [MenuItem("Mygame/Build Dialogue Demo")]
         public static void Run()
@@ -38,6 +42,9 @@ namespace Mygame.EditorTools
             EnsureFolder("Assets/UI", "Prefabs");
             EnsureFolder("Assets", "Ink");
             EnsureFolder("Assets", "Scenes");
+
+            // Korean font (falls back to TMP default if not set up yet).
+            _font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontAssetPath);
 
             TextAsset ink = CompileDemoInk();
             GameObject choicePrefab = BuildChoiceButtonPrefab();
@@ -250,6 +257,8 @@ namespace Mygame.EditorTools
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = ScreenBg;
             camGo.transform.position = new Vector3(0, 0, -10);
+            // Required under URP — without it the camera renders black.
+            camGo.AddComponent<UniversalAdditionalCameraData>();
 
             // EventSystem (legacy input module — project uses old input handler)
             var es = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
@@ -300,6 +309,7 @@ namespace Mygame.EditorTools
         {
             var go = NewUI(name, parent);
             var tmp = go.AddComponent<TextMeshProUGUI>();
+            if (_font != null) tmp.font = _font;
             tmp.text = text;
             tmp.fontSize = size;
             tmp.color = color;
