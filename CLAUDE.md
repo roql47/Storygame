@@ -133,7 +133,8 @@ Assets/
 ---
 
 ## 코딩 규칙
-- 네임스페이스 루트 `Mygame`, 폴더와 일치 (`Mygame.Dialogue`, `Mygame.Map`, `Mygame.Character`, `Mygame.System`).
+- 네임스페이스 루트 `Mygame`, 폴더와 일치 (`Mygame.Dialogue`, `Mygame.Map`, `Mygame.Character`).
+  단 `Scripts/System`은 C#의 `System` 충돌을 피해 **`Mygame.GameSystem`** 을 쓴다.
 - 런타임 스크립트는 `Assets/Scripts/<영역>/`, 에디터 전용은 `Assets/Editor/`.
 - 1파일 1클래스, 파일명 = 클래스명. 매직넘버 대신 SerializeField/상수.
 
