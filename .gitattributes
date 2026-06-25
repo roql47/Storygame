@@ -1,0 +1,28 @@
+* text=auto
+
+# Unity text-based assets (YAML)
+*.cs       text diff=csharp
+*.shader   text
+*.cginc    text
+*.hlsl     text
+*.uss      text
+*.uxml     text
+*.asset    text
+*.meta     text
+*.unity    text
+*.prefab   text
+*.mat      text
+*.json     text
+*.ink      text
+
+# Binary assets
+*.png      binary
+*.jpg      binary
+*.psd      binary
+*.gif      binary
+*.wav      binary
+*.mp3      binary
+*.ogg      binary
+*.fbx      binary
+*.unitypackage binary
+*.dll      binary
