@@ -1,7 +1,7 @@
 # Mygame — 프로젝트 가이드 (CLAUDE.md)
 
 마녀의 샘(Witch's Spring) 스타일의 **2D 싱글 스토리 모바일 게임**.
-Unity로 제작하며, 아트/애니메이션/맵/스토리를 외부 툴에서 만들고 Unity로 통합한다.
+AI 툴 체인으로 에셋을 생성하고 Unity에서 통합한다.
 
 ## 기술 스택
 
@@ -9,95 +9,142 @@ Unity로 제작하며, 아트/애니메이션/맵/스토리를 외부 툴에서 
 |------|----------------|------|
 | 엔진 | Unity (2D, URP) | 6000.4.11f1 |
 | 렌더 | Universal Render Pipeline (2D Renderer) | 17.4.0 |
-| 2D 기능 | com.unity.feature.2d | 2.0.2 |
-| 캐릭터 애니 | Spine Runtime (spine-unity) | git #4.2 |
 | 맵 | LDtkToUnity (com.cammin.ldtkunity) | 6.12.3 (OpenUPM) |
 | 스토리 | Ink (com.inkle.ink-unity-integration) | 1.2.2 (OpenUPM) |
 | 입력 | Input System | 1.19.0 |
+| (legacy) | Spine Runtime | git #4.2 — 현재 파이프라인 미사용 |
 
-> 서드파티 패키지는 `Packages/manifest.json`로 관리한다. LDtk/Ink는 OpenUPM
-> scoped registry, Spine은 git URL로 연결되어 있다. 임의로 버전을 바꾸지 말 것.
+> 캐릭터 애니메이션은 **Spine이 아니라 Meshy AI(FBX/GLB)** 로 제작한다.
+> Spine 패키지는 남아있지만 이 파이프라인에서는 사용하지 않는다.
 
 ## 화면 / 플랫폼
+- 기본 해상도: **1080 x 1920 (세로 / Portrait)**, 세로 고정
+- 타깃: Android / iOS, Orthographic 카메라 + URP 2D Renderer
 
-- 기본 해상도: **1080 x 1920 (세로 / Portrait)**
-- 타깃 플랫폼: 모바일 (Android / iOS). 세로 고정.
-- 카메라: Orthographic, URP 2D Renderer 사용.
+---
 
-## 폴더 구조
-
-```
-Mygame/
-├── Assets/
-│   ├── Sprites/        # 정적 스프라이트, 아틀라스
-│   ├── Animations/     # Spine export(.json/.atlas/.png), Unity 애니
-│   ├── Maps/           # LDtk import 결과(.ldtk → 프리팹/씬)
-│   ├── Ink/            # Ink 컴파일 결과(.json) + .ink 소스
-│   ├── Audio/          # BGM, SFX
-│   ├── UI/             # UI 스프라이트, 프리팹
-│   ├── Scenes/         # Main.unity 등 씬
-│   ├── Settings/       # URP_2D.asset, Renderer2D.asset
-│   ├── Editor/         # 에디터 전용 스크립트(ProjectBootstrap 등)
-│   └── Scripts/
-│       ├── Dialogue/   # Ink 연동, 대화 UI, 분기 제어
-│       ├── Map/        # LDtk 로딩, 맵 전환, 충돌/엔티티
-│       ├── Character/  # 캐릭터 컨트롤, Spine 애니 제어
-│       └── System/     # 세이브/로드, 게임 매니저, 씬 흐름
-├── RawAssets/          # 작업 원본 (git 추적 O, 빌드 미포함)
-│   ├── spine/  ldtk/  ink/  audio/  ui/
-├── Skills/             # 제작 파이프라인 단계별 작업 폴더 (01~09)
-└── Docs/               # 기획서, 설계 문서
-```
-
-## 제작 파이프라인 (Skills 01 → 09)
-
-원본은 `RawAssets/`에서 만들고, Unity용 산출물은 `Assets/`로 들어온다.
+## 제작 파이프라인 (9단계)
 
 ```
-01_GameDirector      게임 방향성 · GDD · 작업 지시
-        ↓
-02_CharacterConcept  캐릭터 컨셉 아트
-        ↓
-03_CharacterParts    파츠 분리 (→ RawAssets/spine)
-        ↓
-04_SpineAnimation    리깅 · 애니 · export  → Assets/Animations, Assets/Sprites
-05_BackgroundMap     LDtk 맵 (RawAssets/ldtk)  → Assets/Maps
-06_UI                UI 에셋 (RawAssets/ui)   → Assets/UI
-07_StoryInk          Ink 스토리 (RawAssets/ink) → Assets/Ink
-        ↓
-08_UnityIntegration  씬 구성 · 프리팹 · 스크립트 연동 (Assets/Scripts)
-        ↓
-09_QABuild           테스트 · 빌드 · 배포
+1. ComfyUI      캐릭터/배경 이미지 생성        → RawAssets/comfyui
+2. Scenario.gg  파츠 분리 자동화               → RawAssets/scenario
+3. Meshy AI     자동 리깅 + 애니메이션(FBX/GLB) → RawAssets/meshy → Assets/Models
+4. Suno         BGM 생성                       → RawAssets/suno  → Assets/Audio/BGM
+5. ElevenLabs   보이스 생성                    → RawAssets/elevenlabs → Assets/Audio/Voice
+6. Inky         스토리/대화(.ink → .json)      → RawAssets/ink   → Assets/Ink
+7. LDtk         맵 제작(.ldtk)                 → RawAssets/ldtk  → Assets/Maps
+8. Unity        최종 통합 (씬/프리팹/스크립트)  → Assets/Scripts, Assets/Scenes
+9. GitHub       버전관리                       → origin/main
 ```
 
-각 단계의 상세 역할은 해당 `Skills/<단계>/README.md` 참고.
+**원칙**: 툴에서 export한 **원본**은 `RawAssets/<툴>/` 에 보관(빌드 미포함),
+Unity가 실제로 쓰는 **변환/임포트 결과**만 `Assets/` 에 둔다.
+
+---
+
+## 폴더 ↔ 툴 매핑 (export 파일을 어디에 넣는가)
+
+### 1. ComfyUI — 이미지 생성
+| 결과물 | 원본 위치 | Unity 위치 |
+|--------|-----------|------------|
+| 캐릭터 컨셉(png) | `RawAssets/comfyui/characters/` | (Scenario로 전달) |
+| 배경(png) | `RawAssets/comfyui/backgrounds/` | `Assets/Sprites/Backgrounds/` |
+| UI 소스(png) | `RawAssets/comfyui/ui/` | `Assets/UI/` |
+
+> 배경/UI는 그대로 스프라이트로 쓰므로 Assets로 복사. PNG는 sRGB, 단일 스프라이트.
+
+### 2. Scenario.gg — 파츠 분리
+| 결과물 | 원본 위치 | Unity 위치 |
+|--------|-----------|------------|
+| 분리된 파츠(psd/png 레이어) | `RawAssets/scenario/<캐릭터>/` | (Meshy로 전달) |
+
+> 파츠는 Meshy 리깅 입력으로만 사용. 2D 스프라이트로 직접 쓸 경우만 `Assets/Sprites/`로.
+
+### 3. Meshy AI — 리깅 + 애니메이션 ⭐
+| 결과물 | 원본 위치 | Unity 위치 |
+|--------|-----------|------------|
+| 리깅된 모델 + 애니(fbx/glb) | `RawAssets/meshy/<캐릭터>/` | `Assets/Models/<캐릭터>/` |
+| 텍스처(png) | 〃 (fbx와 동봉) | `Assets/Models/<캐릭터>/` |
+
+> **`Assets/Models/` 아래에 넣으면 `MeshyModelPostprocessor`가 자동 임포트 설정 +
+> AnimatorController + 프리팹을 `Assets/Models/Prefabs/`에 생성한다.** (아래 4번 항목)
+> 파일명 규칙: `<캐릭터>@<애니메이션>.fbx` (예: `witch@idle.fbx`, `witch@walk.fbx`).
+> `@` 앞이 같은 모델들은 하나의 캐릭터로 묶여 AnimatorController에 모인다.
+
+### 4. Suno — BGM
+| 결과물 | 원본 위치 | Unity 위치 |
+|--------|-----------|------------|
+| BGM(wav/mp3) | `RawAssets/suno/` | `Assets/Audio/BGM/` |
+
+> 임포트 설정: Load Type = Streaming, Background music는 보통 Compressed/Vorbis.
+
+### 5. ElevenLabs — 보이스
+| 결과물 | 원본 위치 | Unity 위치 |
+|--------|-----------|------------|
+| 보이스(mp3/wav) | `RawAssets/elevenlabs/` | `Assets/Audio/Voice/` |
+
+> 파일명을 Ink 태그와 맞춘다: `#voice:witch_001` → `Assets/Audio/Voice/witch_001.wav`.
+> 대사 음성은 `DialogueManager`의 voice 태그로 재생(아래 6번).
+
+### 6. Inky — 스토리/대화
+| 결과물 | 원본 위치 | Unity 위치 |
+|--------|-----------|------------|
+| `.ink` 소스 | `RawAssets/ink/` | `Assets/Ink/` (선택) |
+| 컴파일 `.json` | — | `Assets/Ink/` |
+
+> `.ink`를 `Assets/Ink/`에 두면 ink-unity-integration이 `.json`을 자동 컴파일.
+> 런타임 재생은 `Assets/Scripts/Dialogue/DialogueManager.cs`가 담당.
+
+### 7. LDtk — 맵
+| 결과물 | 원본 위치 | Unity 위치 |
+|--------|-----------|------------|
+| `.ldtk` + 타일셋(png) | `RawAssets/ldtk/` | `Assets/Maps/` |
+
+> `.ldtk`를 `Assets/Maps/`에 두면 LDtkToUnity가 프리팹으로 임포트.
+> 런타임 로딩/레벨 전환은 `Assets/Scripts/Map/MapLoader.cs`가 담당.
+
+---
+
+## Assets 폴더 구조
+
+```
+Assets/
+├── Sprites/        # ComfyUI 배경, 스프라이트
+│   └── Backgrounds/
+├── Models/         # Meshy FBX/GLB (자동 임포트 대상)
+│   └── Prefabs/    # MeshyModelPostprocessor가 생성
+├── Animations/     # 추가 애니 클립/컨트롤러
+├── Maps/           # LDtk .ldtk 임포트
+├── Ink/            # .ink + 컴파일 .json
+├── Audio/
+│   ├── BGM/        # Suno
+│   └── Voice/      # ElevenLabs
+├── UI/             # UI 스프라이트/프리팹
+├── Scenes/         # Main.unity
+├── Settings/       # URP_2D.asset, Renderer2D.asset
+├── Editor/         # MeshyModelPostprocessor.cs 등 에디터 전용
+└── Scripts/
+    ├── Dialogue/   # DialogueManager.cs (Ink)
+    ├── Map/        # MapLoader.cs (LDtk)
+    ├── Character/  # 캐릭터 컨트롤 / Animator 제어
+    └── System/     # 게임매니저, 세이브/로드, 씬 흐름
+```
+
+---
 
 ## 코딩 규칙
-
-- 네임스페이스 루트: `Mygame`. 폴더와 네임스페이스를 맞춘다
-  (예: `Mygame.Dialogue`, `Mygame.Map`, `Mygame.Character`, `Mygame.System`).
+- 네임스페이스 루트 `Mygame`, 폴더와 일치 (`Mygame.Dialogue`, `Mygame.Map`, `Mygame.Character`, `Mygame.System`).
 - 런타임 스크립트는 `Assets/Scripts/<영역>/`, 에디터 전용은 `Assets/Editor/`.
-- MonoBehaviour 1파일 1클래스, 파일명 = 클래스명.
-- 시스템 간 의존은 `System`(매니저)에서 조립. 영역끼리 직접 참조는 최소화.
-- 매직 넘버 대신 ScriptableObject/상수 사용.
+- 1파일 1클래스, 파일명 = 클래스명. 매직넘버 대신 SerializeField/상수.
 
-## 에셋 연동 규칙
-
-- **Spine**: export한 `_SkeletonData`/atlas/png 세트를 `Assets/Animations/<캐릭터>/`에
-  통째로 넣는다. 애니 재생은 `Character` 스크립트에서 제어.
-- **LDtk**: `.ldtk` 파일은 `Assets/Maps/`에 두고 LDtkToUnity가 임포트. 맵 로딩/전환은
-  `Map` 스크립트에서.
-- **Ink**: `.ink` 작성 → 컴파일된 `.json`을 `Assets/Ink/`에. 런타임 재생/분기/변수는
-  `Dialogue` 스크립트(ink-unity-integration `Story` API)로 제어.
-
-## 빌드 / 실행
-
-- 메인 씬: `Assets/Scenes/Main.unity` (Build Settings 0번에 등록됨).
-- 모바일 빌드 시 Android/iOS 모듈 필요. 세로 고정 확인.
-- 에디터: Unity 6000.4.11f1로 열 것. 첫 오픈 시 패키지 자동 복원됨.
+## 네이밍 규칙 (중요)
+- Meshy FBX: `<캐릭터>@<애니>.fbx` (idle/walk/attack/talk …)
+- ElevenLabs 보이스: `<캐릭터>_<번호>.wav`, Ink 태그 `#voice:<파일명>`과 동일
+- Ink 노트/knot: 영문 snake_case
+- LDtk 레벨 Identifier: `Level_<지역>_<번호>` 권장
 
 ## Git 규칙
-
-- `Library/`, `Temp/`, `Logs/`, `Build/` 등은 커밋하지 않는다(.gitignore 적용).
-- `Assets/` `Packages/` `ProjectSettings/` `RawAssets/` `Skills/` `Docs/`는 추적.
-- `.meta` 파일은 반드시 함께 커밋한다.
+- `Library/ Temp/ Logs/ Build/ .claude/` 미커밋(.gitignore).
+- `Assets/ Packages/ ProjectSettings/ RawAssets/ Skills/ Docs/` 추적, `.meta` 항상 동반 커밋.
+- 큰 바이너리(fbx/wav/png)가 많아지면 Git LFS 도입 검토.
+- 원격: `origin` = https://github.com/roql47/Storygame.git (main).
