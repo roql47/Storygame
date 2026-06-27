@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # Auto part-splitter: SAM (hair/face) + anatomical geometric slicing (occluded limbs).
-import os, numpy as np
+import os, sys, numpy as np
 from PIL import Image
 import torch
 from segment_anything import sam_model_registry, SamAutomaticMaskGenerator
 
-SRC   = r"D:\Mygame\RawAssets\scenario\witch\witch_wai_00002_cutout.png"
-OUT   = r"D:\Mygame\RawAssets\scenario\witch\parts"
+# usage: python sam_split_parts.py [cutout.png] [out_dir]
+SRC   = sys.argv[1] if len(sys.argv) > 1 else r"D:\Mygame\RawAssets\scenario\witch\witch_rig_cutout.png"
+OUT   = sys.argv[2] if len(sys.argv) > 2 else r"D:\Mygame\RawAssets\scenario\witch\parts"
 CKPT  = r"D:\PIXEL_pipeline\sam_models\sam_vit_b_01ec64.pth"
 os.makedirs(OUT, exist_ok=True)
 
@@ -44,11 +45,20 @@ code[mid_band & ~central & ~left] = ARM_R
 code[leg_band & left]  = LEG_L
 code[leg_band & ~left] = LEG_R
 
-# ---- color masks ----
-# pink hair: R high, B close to G (pink), not strongly green-dominant skin
-hair_col = (R > 175) & (B > 145) & (np.abs(G - B) < 40) & ((G - B) <= 22) & (R >= G - 12)
-# peach skin: green clearly above blue
-skin_col = (R > 195) & (G > 150) & ((G - B) > 16) & (R >= G)
+# ---- color masks via HSV hue (pink hair ~330 vs peach skin ~30 are far apart) ----
+Rf, Gf, Bf = R.astype(float), G.astype(float), B.astype(float)
+mx = np.maximum(np.maximum(Rf, Gf), Bf)
+mn = np.minimum(np.minimum(Rf, Gf), Bf)
+delta = mx - mn + 1e-6
+hue = np.zeros_like(mx)
+mr, mg, mb = (mx == Rf), (mx == Gf), (mx == Bf)
+hue[mr] = (60 * (((Gf - Bf) / delta) % 6))[mr]
+hue[mg] = (60 * ((Bf - Rf) / delta + 2))[mg]
+hue[mb] = (60 * ((Rf - Gf) / delta + 4))[mb]
+sat = delta / (mx + 1e-6)
+val = mx / 255.0
+hair_col = (hue >= 285) & (hue <= 355) & (sat > 0.08) & (val > 0.45)            # pink/magenta hair
+skin_col = (hue >= 8) & (hue <= 50) & (sat > 0.08) & (sat < 0.78) & (val > 0.4)  # peach skin
 code[fg & hair_col] = HAIR           # hair wins globally (long flowing hair)
 code[head_band & fg & skin_col] = HEAD
 

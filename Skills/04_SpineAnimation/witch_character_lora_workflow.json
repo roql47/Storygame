@@ -50,7 +50,7 @@
       "outputs": [{ "name": "CONDITIONING", "type": "CONDITIONING", "links": [7], "slot_index": 0 }],
       "properties": { "Node name for S&R": "CLIPTextEncode" },
       "title": "Positive Prompt",
-      "widgets_values": ["masterpiece, best quality, newest, very aesthetic, absurdres, highres, 1girl, solo, witch, young woman, long hair, very long hair, flowing hair, beautiful detailed eyes, wizard robe, mage robe, long sleeves, fantasy outfit, holding staff, watercolor \\(medium\\), watercolor, soft watercolor, pastel colors, soft lighting, soft shading, gentle smile, detailed illustration, fantasy, dreamy atmosphere, full body, standing, looking at viewer, white background, simple background"]
+      "widgets_values": ["masterpiece, best quality, newest, very aesthetic, absurdres, highres, 1girl, solo, witch, young woman, long hair, very long hair, flowing hair, beautiful detailed eyes, witch hat, sleeveless dress, off-shoulder dress, frilled short skirt, bare arms, bare shoulders, bare legs, thighhighs, fantasy outfit, watercolor \\(medium\\), watercolor, soft watercolor, pastel colors, soft lighting, soft shading, gentle smile, detailed illustration, fantasy, dreamy atmosphere, full body, standing, arms at sides, arms away from body, looking at viewer, white background, simple background"]
     },
     {
       "id": 7,
@@ -64,7 +64,7 @@
       "outputs": [{ "name": "CONDITIONING", "type": "CONDITIONING", "links": [8], "slot_index": 0 }],
       "properties": { "Node name for S&R": "CLIPTextEncode" },
       "title": "Negative Prompt",
-      "widgets_values": ["worst quality, low quality, normal quality, lowres, jpeg artifacts, blurry, sketch, monochrome, grayscale, bad anatomy, bad hands, bad proportions, anatomical nonsense, extra digits, fewer digits, missing fingers, extra fingers, mutated hands, extra arms, extra legs, watermark, signature, text, username, artist name, logo, stamp, multiple views, multiple girls, 2girls, multiple boys, cropped, out of frame, head out of frame, realistic, 3d, photo, photorealistic, detailed background, scenery, busy background, cluttered background"]
+      "widgets_values": ["worst quality, low quality, normal quality, lowres, jpeg artifacts, blurry, sketch, monochrome, grayscale, bad anatomy, bad hands, bad proportions, anatomical nonsense, extra digits, fewer digits, missing fingers, extra fingers, mutated hands, extra arms, extra legs, watermark, signature, text, username, artist name, logo, stamp, multiple views, multiple girls, 2girls, multiple boys, cropped, out of frame, head out of frame, realistic, 3d, photo, photorealistic, detailed background, scenery, busy background, cluttered background, long robe, mage robe, cloak, cape, long dress, long sleeves, wide sleeves, holding staff, arms crossed, hands behind back"]
     },
     {
       "id": 5,
@@ -123,7 +123,7 @@
       "inputs": [{ "name": "images", "type": "IMAGE", "link": 11 }],
       "outputs": [],
       "properties": { "Node name for S&R": "SaveImage" },
-      "widgets_values": ["characters/witch_wai"]
+      "widgets_values": ["characters/witch_rig"]
     }
   ],
   "links": [
