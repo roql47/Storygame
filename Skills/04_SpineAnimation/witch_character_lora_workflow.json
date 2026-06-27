@@ -17,7 +17,7 @@
         { "name": "VAE", "type": "VAE", "links": [3], "slot_index": 2 }
       ],
       "properties": { "Node name for S&R": "CheckpointLoaderSimple" },
-      "widgets_values": ["noobaiXLNAIXL_epsilonPred05Version.safetensors"]
+      "widgets_values": ["webui_ckpt\\waiCheapfastANI_v10.safetensors"]
     },
     {
       "id": 10,
@@ -123,7 +123,7 @@
       "inputs": [{ "name": "images", "type": "IMAGE", "link": 11 }],
       "outputs": [],
       "properties": { "Node name for S&R": "SaveImage" },
-      "widgets_values": ["characters/witch_lora"]
+      "widgets_values": ["characters/witch_wai"]
     }
   ],
   "links": [
